@@ -18,11 +18,15 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Tweet } from "./Tweet";
 import { TweetCountArgs } from "./TweetCountArgs";
 import { TweetFindManyArgs } from "./TweetFindManyArgs";
 import { TweetFindUniqueArgs } from "./TweetFindUniqueArgs";
+import { CreateTweetArgs } from "./CreateTweetArgs";
+import { UpdateTweetArgs } from "./UpdateTweetArgs";
 import { DeleteTweetArgs } from "./DeleteTweetArgs";
+import { User } from "../../user/base/User";
 import { TweetService } from "../tweet.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Tweet)
@@ -75,6 +79,61 @@ export class TweetResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Tweet)
+  @nestAccessControl.UseRoles({
+    resource: "Tweet",
+    action: "create",
+    possession: "any",
+  })
+  async createTweet(@graphql.Args() args: CreateTweetArgs): Promise<Tweet> {
+    return await this.service.createTweet({
+      ...args,
+      data: {
+        ...args.data,
+
+        user: args.data.user
+          ? {
+              connect: args.data.user,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Tweet)
+  @nestAccessControl.UseRoles({
+    resource: "Tweet",
+    action: "update",
+    possession: "any",
+  })
+  async updateTweet(
+    @graphql.Args() args: UpdateTweetArgs
+  ): Promise<Tweet | null> {
+    try {
+      return await this.service.updateTweet({
+        ...args,
+        data: {
+          ...args.data,
+
+          user: args.data.user
+            ? {
+                connect: args.data.user,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Tweet)
   @nestAccessControl.UseRoles({
     resource: "Tweet",
@@ -94,5 +153,24 @@ export class TweetResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => User, {
+    nullable: true,
+    name: "user",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "read",
+    possession: "any",
+  })
+  async getUser(@graphql.Parent() parent: Tweet): Promise<User | null> {
+    const result = await this.service.getUser(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
   }
 }

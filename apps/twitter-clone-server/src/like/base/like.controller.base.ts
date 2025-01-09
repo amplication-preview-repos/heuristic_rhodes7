@@ -47,11 +47,25 @@ export class LikeControllerBase {
   })
   async createLike(@common.Body() data: LikeCreateInput): Promise<Like> {
     return await this.service.createLike({
-      data: data,
+      data: {
+        ...data,
+
+        user2s: data.user2s
+          ? {
+              connect: data.user2s,
+            }
+          : undefined,
+      },
       select: {
         createdAt: true,
         id: true,
         updatedAt: true,
+
+        user2s: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -76,6 +90,12 @@ export class LikeControllerBase {
         createdAt: true,
         id: true,
         updatedAt: true,
+
+        user2s: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
   }
@@ -101,6 +121,12 @@ export class LikeControllerBase {
         createdAt: true,
         id: true,
         updatedAt: true,
+
+        user2s: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
     if (result === null) {
@@ -130,11 +156,25 @@ export class LikeControllerBase {
     try {
       return await this.service.updateLike({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          user2s: data.user2s
+            ? {
+                connect: data.user2s,
+              }
+            : undefined,
+        },
         select: {
           createdAt: true,
           id: true,
           updatedAt: true,
+
+          user2s: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {
@@ -168,6 +208,12 @@ export class LikeControllerBase {
           createdAt: true,
           id: true,
           updatedAt: true,
+
+          user2s: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     } catch (error) {

@@ -13,7 +13,8 @@ import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
 import { StringFilter } from "../../util/StringFilter";
 import { Type } from "class-transformer";
-import { IsOptional } from "class-validator";
+import { IsOptional, ValidateNested } from "class-validator";
+import { User2WhereUniqueInput } from "../../user2/base/User2WhereUniqueInput";
 
 @InputType()
 class LikeWhereInput {
@@ -27,6 +28,18 @@ class LikeWhereInput {
     nullable: true,
   })
   id?: StringFilter;
+
+  @ApiProperty({
+    required: false,
+    type: () => User2WhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => User2WhereUniqueInput)
+  @IsOptional()
+  @Field(() => User2WhereUniqueInput, {
+    nullable: true,
+  })
+  user2s?: User2WhereUniqueInput;
 }
 
 export { LikeWhereInput as LikeWhereInput };

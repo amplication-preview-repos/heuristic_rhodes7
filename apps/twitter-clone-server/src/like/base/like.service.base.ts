@@ -10,7 +10,11 @@ https://docs.amplication.com/how-to/custom-code
 ------------------------------------------------------------------------------
   */
 import { PrismaService } from "../../prisma/prisma.service";
-import { Prisma, Like as PrismaLike } from "@prisma/client";
+import {
+  Prisma,
+  Like as PrismaLike,
+  User2 as PrismaUser2,
+} from "@prisma/client";
 
 export class LikeServiceBase {
   constructor(protected readonly prisma: PrismaService) {}
@@ -33,5 +37,13 @@ export class LikeServiceBase {
   }
   async deleteLike(args: Prisma.LikeDeleteArgs): Promise<PrismaLike> {
     return this.prisma.like.delete(args);
+  }
+
+  async getUser2s(parentId: string): Promise<PrismaUser2 | null> {
+    return this.prisma.like
+      .findUnique({
+        where: { id: parentId },
+      })
+      .user2s();
   }
 }

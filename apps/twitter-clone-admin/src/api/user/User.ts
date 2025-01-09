@@ -1,4 +1,5 @@
 import { JsonValue } from "type-fest";
+import { Tweet } from "../tweet/Tweet";
 
 export type User = {
   createdAt: Date;
@@ -7,6 +8,7 @@ export type User = {
   id: string;
   lastName: string | null;
   roles: JsonValue;
+  tweets?: Array<Tweet>;
   updatedAt: Date;
   username: string;
 };

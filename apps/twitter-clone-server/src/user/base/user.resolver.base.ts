@@ -26,6 +26,8 @@ import { UserFindUniqueArgs } from "./UserFindUniqueArgs";
 import { CreateUserArgs } from "./CreateUserArgs";
 import { UpdateUserArgs } from "./UpdateUserArgs";
 import { DeleteUserArgs } from "./DeleteUserArgs";
+import { TweetFindManyArgs } from "../../tweet/base/TweetFindManyArgs";
+import { Tweet } from "../../tweet/base/Tweet";
 import { UserService } from "../user.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => User)
@@ -130,5 +132,25 @@ export class UserResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => [Tweet], { name: "tweets" })
+  @nestAccessControl.UseRoles({
+    resource: "Tweet",
+    action: "read",
+    possession: "any",
+  })
+  async findTweets(
+    @graphql.Parent() parent: User,
+    @graphql.Args() args: TweetFindManyArgs
+  ): Promise<Tweet[]> {
+    const results = await this.service.findTweets(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 }

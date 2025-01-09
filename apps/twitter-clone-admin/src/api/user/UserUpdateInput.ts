@@ -1,4 +1,5 @@
 import { InputJsonValue } from "../../types";
+import { TweetUpdateManyWithoutUsersInput } from "./TweetUpdateManyWithoutUsersInput";
 
 export type UserUpdateInput = {
   email?: string | null;
@@ -6,5 +7,6 @@ export type UserUpdateInput = {
   lastName?: string | null;
   password?: string;
   roles?: InputJsonValue;
+  tweets?: TweetUpdateManyWithoutUsersInput;
   username?: string;
 };

@@ -18,11 +18,15 @@ import * as gqlACGuard from "../../auth/gqlAC.guard";
 import { GqlDefaultAuthGuard } from "../../auth/gqlDefaultAuth.guard";
 import * as common from "@nestjs/common";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
+import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { Like } from "./Like";
 import { LikeCountArgs } from "./LikeCountArgs";
 import { LikeFindManyArgs } from "./LikeFindManyArgs";
 import { LikeFindUniqueArgs } from "./LikeFindUniqueArgs";
+import { CreateLikeArgs } from "./CreateLikeArgs";
+import { UpdateLikeArgs } from "./UpdateLikeArgs";
 import { DeleteLikeArgs } from "./DeleteLikeArgs";
+import { User2 } from "../../user2/base/User2";
 import { LikeService } from "../like.service";
 @common.UseGuards(GqlDefaultAuthGuard, gqlACGuard.GqlACGuard)
 @graphql.Resolver(() => Like)
@@ -73,6 +77,59 @@ export class LikeResolverBase {
     return result;
   }
 
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Like)
+  @nestAccessControl.UseRoles({
+    resource: "Like",
+    action: "create",
+    possession: "any",
+  })
+  async createLike(@graphql.Args() args: CreateLikeArgs): Promise<Like> {
+    return await this.service.createLike({
+      ...args,
+      data: {
+        ...args.data,
+
+        user2s: args.data.user2s
+          ? {
+              connect: args.data.user2s,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @common.UseInterceptors(AclValidateRequestInterceptor)
+  @graphql.Mutation(() => Like)
+  @nestAccessControl.UseRoles({
+    resource: "Like",
+    action: "update",
+    possession: "any",
+  })
+  async updateLike(@graphql.Args() args: UpdateLikeArgs): Promise<Like | null> {
+    try {
+      return await this.service.updateLike({
+        ...args,
+        data: {
+          ...args.data,
+
+          user2s: args.data.user2s
+            ? {
+                connect: args.data.user2s,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
   @graphql.Mutation(() => Like)
   @nestAccessControl.UseRoles({
     resource: "Like",
@@ -90,5 +147,24 @@ export class LikeResolverBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @graphql.ResolveField(() => User2, {
+    nullable: true,
+    name: "user2s",
+  })
+  @nestAccessControl.UseRoles({
+    resource: "User2",
+    action: "read",
+    possession: "any",
+  })
+  async getUser2s(@graphql.Parent() parent: Like): Promise<User2 | null> {
+    const result = await this.service.getUser2s(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
   }
 }

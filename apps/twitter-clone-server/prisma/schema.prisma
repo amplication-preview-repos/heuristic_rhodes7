@@ -15,6 +15,7 @@ model User {
   lastName  String?
   password  String
   roles     Json
+  tweets    Tweet[]
   updatedAt DateTime @updatedAt
   username  String   @unique
 }
@@ -23,6 +24,8 @@ model Tweet {
   createdAt DateTime @default(now())
   id        String   @id @default(cuid())
   updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
 }
 
 model Follow {
@@ -41,4 +44,12 @@ model Like {
   createdAt DateTime @default(now())
   id        String   @id @default(cuid())
   updatedAt DateTime @updatedAt
+  user2s    User2?
+}
+
+model User2 {
+  createdAt   DateTime @default(now())
+  id          String   @id @default(cuid())
+  updatedAt   Like     @relation(fields: [updatedAtId], references: [id])
+  updatedAtId String   @unique
 }

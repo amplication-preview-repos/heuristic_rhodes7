@@ -11,8 +11,9 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString } from "class-validator";
+import { IsDate, IsString, ValidateNested, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
+import { User2 } from "../../user2/base/User2";
 
 @ObjectType()
 class Like {
@@ -39,6 +40,15 @@ class Like {
   @Type(() => Date)
   @Field(() => Date)
   updatedAt!: Date;
+
+  @ApiProperty({
+    required: false,
+    type: () => User2,
+  })
+  @ValidateNested()
+  @Type(() => User2)
+  @IsOptional()
+  user2s?: User2 | null;
 }
 
 export { Like as Like };

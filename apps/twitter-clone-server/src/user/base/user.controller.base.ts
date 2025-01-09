@@ -26,6 +26,9 @@ import { User } from "./User";
 import { UserFindManyArgs } from "./UserFindManyArgs";
 import { UserWhereUniqueInput } from "./UserWhereUniqueInput";
 import { UserUpdateInput } from "./UserUpdateInput";
+import { TweetFindManyArgs } from "../../tweet/base/TweetFindManyArgs";
+import { Tweet } from "../../tweet/base/Tweet";
+import { TweetWhereUniqueInput } from "../../tweet/base/TweetWhereUniqueInput";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
@@ -203,5 +206,106 @@ export class UserControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.UseInterceptors(AclFilterResponseInterceptor)
+  @common.Get("/:id/tweets")
+  @ApiNestedQuery(TweetFindManyArgs)
+  @nestAccessControl.UseRoles({
+    resource: "Tweet",
+    action: "read",
+    possession: "any",
+  })
+  async findTweets(
+    @common.Req() request: Request,
+    @common.Param() params: UserWhereUniqueInput
+  ): Promise<Tweet[]> {
+    const query = plainToClass(TweetFindManyArgs, request.query);
+    const results = await this.service.findTweets(params.id, {
+      ...query,
+      select: {
+        createdAt: true,
+        id: true,
+        updatedAt: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/tweets")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async connectTweets(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: TweetWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      tweets: {
+        connect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/tweets")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async updateTweets(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: TweetWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      tweets: {
+        set: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/tweets")
+  @nestAccessControl.UseRoles({
+    resource: "User",
+    action: "update",
+    possession: "any",
+  })
+  async disconnectTweets(
+    @common.Param() params: UserWhereUniqueInput,
+    @common.Body() body: TweetWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      tweets: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateUser({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

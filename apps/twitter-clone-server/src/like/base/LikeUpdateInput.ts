@@ -9,5 +9,25 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class LikeUpdateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { User2WhereUniqueInput } from "../../user2/base/User2WhereUniqueInput";
+import { ValidateNested, IsOptional } from "class-validator";
+import { Type } from "class-transformer";
+
+@InputType()
+class LikeUpdateInput {
+  @ApiProperty({
+    required: false,
+    type: () => User2WhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => User2WhereUniqueInput)
+  @IsOptional()
+  @Field(() => User2WhereUniqueInput, {
+    nullable: true,
+  })
+  user2s?: User2WhereUniqueInput | null;
+}
+
 export { LikeUpdateInput as LikeUpdateInput };
